@@ -1,0 +1,6 @@
+{
+  "name": "Mina -- 3D Creator",
+  "description": "3D Creator portfolio landing page for Mina featuring an interactive WebGL living portrait, scroll-driven marquee showcase, character-reveal bio, services, and sticky-stacking project case studies.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
