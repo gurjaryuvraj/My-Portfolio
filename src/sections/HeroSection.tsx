@@ -1,13 +1,9 @@
 import React from 'react';
 import { FadeIn } from '../components/FadeIn';
-import { ContactButton } from '../components/ContactButton';
+import { ContactButton, LINKEDIN_URL } from '../components/ContactButton';
 import { Magnet } from '../components/Magnet';
 
-interface HeroSectionProps {
-  onOpenContact: () => void;
-}
-
-export function HeroSection({ onOpenContact }: HeroSectionProps) {
+export function HeroSection() {
   const handleScrollTo = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
     e.preventDefault();
     const target = document.getElementById(id);
@@ -49,11 +45,9 @@ export function HeroSection({ onOpenContact }: HeroSectionProps) {
             Projects
           </a>
           <a
-            href="#contact"
-            onClick={(e) => {
-              e.preventDefault();
-              onOpenContact();
-            }}
+            href={LINKEDIN_URL}
+            target="_blank"
+            rel="noopener noreferrer"
             className="pointer-events-auto text-[#D7E2EA] font-medium uppercase tracking-wider text-sm md:text-lg lg:text-[1.4rem] hover:opacity-70 transition-opacity duration-200 whitespace-nowrap"
           >
             Contact
@@ -64,8 +58,8 @@ export function HeroSection({ onOpenContact }: HeroSectionProps) {
       {/* Massive Hero Heading */}
       <div className="relative z-0 w-full overflow-hidden pointer-events-none">
         <FadeIn delay={0.15} y={40} className="w-full">
-          <h1 className="hero-heading font-black uppercase tracking-tight leading-none whitespace-nowrap w-full text-center text-[14vw] sm:text-[15vw] md:text-[16vw] lg:text-[17.5vw] mt-6 sm:mt-4 md:-mt-5 select-none">
-            Hi, i&apos;m mina
+          <h1 className="hero-heading font-black uppercase tracking-tight leading-none whitespace-nowrap w-full text-center text-[11.5vw] sm:text-[12.5vw] md:text-[13.5vw] lg:text-[14.2vw] mt-6 sm:mt-4 md:-mt-5 select-none">
+            Hey iam yuvraj
           </h1>
         </FadeIn>
       </div>
@@ -128,7 +122,7 @@ export function HeroSection({ onOpenContact }: HeroSectionProps) {
 
         <FadeIn delay={0.5} y={20} className="pointer-events-auto">
           <Magnet>
-            <ContactButton onClick={onOpenContact} />
+            <ContactButton />
           </Magnet>
         </FadeIn>
       </div>

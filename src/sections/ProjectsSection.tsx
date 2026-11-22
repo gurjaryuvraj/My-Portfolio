@@ -55,7 +55,7 @@ function ProjectCard({
             </div>
           </div>
 
-          <LiveProjectButton onClick={() => onSelectProject(project, 0)} />
+          <LiveProjectButton href={project.githubUrl} />
         </div>
 
         {/* Bottom Row: Two-Column Image Grid (40% Left / 60% Right) */}

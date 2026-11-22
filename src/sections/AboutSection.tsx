@@ -5,14 +5,10 @@ import { ContactButton } from '../components/ContactButton';
 import { Magnet } from '../components/Magnet';
 import { ABOUT_DECORATIONS } from '../data/portfolio';
 
-interface AboutSectionProps {
-  onOpenContact: () => void;
-}
-
 const ABOUT_COPY =
   "With more than five years of experience in design, i focus on branding, web design, and user experience, i truly enjoy working with businesses that aim to stand out and present their best image. Let's build something incredible together!";
 
-export function AboutSection({ onOpenContact }: AboutSectionProps) {
+export function AboutSection() {
   return (
     <section
       id="about"
@@ -111,7 +107,7 @@ export function AboutSection({ onOpenContact }: AboutSectionProps) {
 
         <FadeIn delay={0.15} y={20}>
           <Magnet>
-            <ContactButton onClick={onOpenContact} />
+            <ContactButton />
           </Magnet>
         </FadeIn>
       </div>

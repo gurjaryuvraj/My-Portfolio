@@ -7,14 +7,12 @@ interface ProjectModalProps {
   project: ProjectItem | null;
   initialImageIndex?: number;
   onClose: () => void;
-  onInquire: () => void;
 }
 
 export function ProjectModal({
   project,
   initialImageIndex = 0,
   onClose,
-  onInquire,
 }: ProjectModalProps) {
   const [activeIndex, setActiveIndex] = useState(initialImageIndex);
 
@@ -162,17 +160,23 @@ export function ProjectModal({
               </div>
             </div>
 
-            <div className="mt-6 pt-5 border-t border-[#D7E2EA]/15 flex justify-end">
-              <button
-                type="button"
-                onClick={() => {
-                  onClose();
-                  onInquire();
-                }}
+            <div className="mt-6 pt-5 border-t border-[#D7E2EA]/15 flex flex-wrap items-center justify-end gap-3">
+              <a
+                href={project.githubUrl}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="rounded-full border-2 border-[#D7E2EA] text-[#D7E2EA] font-medium uppercase tracking-widest px-7 py-2.5 text-xs sm:text-sm hover:bg-[#D7E2EA]/10 transition-colors cursor-pointer"
               >
-                Start a Similar Project
-              </button>
+                View on GitHub
+              </a>
+              <a
+                href="https://www.linkedin.com/in/yuvraj-gurjar-a95377253/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-full border-2 border-[#D7E2EA]/40 text-[#D7E2EA] font-medium uppercase tracking-widest px-7 py-2.5 text-xs sm:text-sm hover:bg-[#D7E2EA]/10 transition-colors cursor-pointer"
+              >
+                Connect on LinkedIn
+              </a>
             </div>
           </motion.div>
         </motion.div>
