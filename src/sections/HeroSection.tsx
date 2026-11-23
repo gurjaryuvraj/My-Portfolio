@@ -218,9 +218,13 @@ export function HeroSection({ mode, onChangeMode }: HeroSectionProps) {
           <a
             href="#about"
             onClick={(e) => handleScrollTo(e, 'about')}
-            style={!isDev ? { textShadow: skyTheme.textShadow } : undefined}
-            className={`pointer-events-auto font-medium uppercase tracking-wider text-sm md:text-lg lg:text-[1.4rem] hover:opacity-70 transition-all duration-200 whitespace-nowrap ${
-              isDev ? 'text-[#F5D0FE]' : skyTheme.textColorClass
+            style={
+              !isDev
+                ? { color: skyTheme.navColor, textShadow: skyTheme.textShadow }
+                : undefined
+            }
+            className={`pointer-events-auto font-medium uppercase tracking-wider text-sm md:text-lg lg:text-[1.4rem] hover:opacity-75 transition-all duration-200 whitespace-nowrap ${
+              isDev ? 'text-[#F5D0FE]' : ''
             }`}
           >
             About
@@ -228,9 +232,13 @@ export function HeroSection({ mode, onChangeMode }: HeroSectionProps) {
           <a
             href="#services"
             onClick={(e) => handleScrollTo(e, 'services')}
-            style={!isDev ? { textShadow: skyTheme.textShadow } : undefined}
-            className={`pointer-events-auto font-medium uppercase tracking-wider text-sm md:text-lg lg:text-[1.4rem] hover:opacity-70 transition-all duration-200 whitespace-nowrap ${
-              isDev ? 'text-[#F5D0FE]' : skyTheme.textColorClass
+            style={
+              !isDev
+                ? { color: skyTheme.navColor, textShadow: skyTheme.textShadow }
+                : undefined
+            }
+            className={`pointer-events-auto font-medium uppercase tracking-wider text-sm md:text-lg lg:text-[1.4rem] hover:opacity-75 transition-all duration-200 whitespace-nowrap ${
+              isDev ? 'text-[#F5D0FE]' : ''
             }`}
           >
             Price
@@ -238,9 +246,13 @@ export function HeroSection({ mode, onChangeMode }: HeroSectionProps) {
           <a
             href="#projects"
             onClick={(e) => handleScrollTo(e, 'projects')}
-            style={!isDev ? { textShadow: skyTheme.textShadow } : undefined}
-            className={`pointer-events-auto font-medium uppercase tracking-wider text-sm md:text-lg lg:text-[1.4rem] hover:opacity-70 transition-all duration-200 whitespace-nowrap ${
-              isDev ? 'text-[#F5D0FE]' : skyTheme.textColorClass
+            style={
+              !isDev
+                ? { color: skyTheme.navColor, textShadow: skyTheme.textShadow }
+                : undefined
+            }
+            className={`pointer-events-auto font-medium uppercase tracking-wider text-sm md:text-lg lg:text-[1.4rem] hover:opacity-75 transition-all duration-200 whitespace-nowrap ${
+              isDev ? 'text-[#F5D0FE]' : ''
             }`}
           >
             Projects
@@ -249,9 +261,13 @@ export function HeroSection({ mode, onChangeMode }: HeroSectionProps) {
             href={LINKEDIN_URL}
             target="_blank"
             rel="noopener noreferrer"
-            style={!isDev ? { textShadow: skyTheme.textShadow } : undefined}
-            className={`pointer-events-auto font-medium uppercase tracking-wider text-sm md:text-lg lg:text-[1.4rem] hover:opacity-70 transition-all duration-200 whitespace-nowrap ${
-              isDev ? 'text-[#F5D0FE]' : skyTheme.textColorClass
+            style={
+              !isDev
+                ? { color: skyTheme.navColor, textShadow: skyTheme.textShadow }
+                : undefined
+            }
+            className={`pointer-events-auto font-medium uppercase tracking-wider text-sm md:text-lg lg:text-[1.4rem] hover:opacity-75 transition-all duration-200 whitespace-nowrap ${
+              isDev ? 'text-[#F5D0FE]' : ''
             }`}
           >
             Contact
@@ -293,23 +309,38 @@ export function HeroSection({ mode, onChangeMode }: HeroSectionProps) {
             className={`pointer-events-auto inline-flex items-center gap-1 p-1.5 rounded-full border backdrop-blur-md transition-all duration-300 ${
               isDev
                 ? 'bg-[#170926]/85 border-[#EC4899]/60 shadow-[0_0_28px_rgba(236,72,153,0.35)]'
-                : 'bg-[#141518]/85 border-[#D7E2EA]/35 shadow-[0_8px_24px_rgba(0,0,0,0.45)]'
+                : ''
             }`}
+            style={
+              !isDev
+                ? {
+                    backgroundColor: skyTheme.toggle.shellBg,
+                    borderColor: skyTheme.toggle.shellBorder,
+                    boxShadow: skyTheme.toggle.shellShadow,
+                  }
+                : undefined
+            }
           >
             <button
               type="button"
               role="tab"
               aria-selected={!isDev}
               onClick={() => onChangeMode('design')}
+              style={
+                !isDev
+                  ? { color: skyTheme.toggle.activeText }
+                  : undefined
+              }
               className={`relative z-10 inline-flex items-center gap-2 px-4 sm:px-5 py-2 rounded-full text-xs sm:text-sm font-medium uppercase tracking-widest transition-colors duration-200 cursor-pointer whitespace-nowrap shrink-0 ${
-                !isDev ? 'text-[#0C0C0C]' : 'text-[#F5D0FE]/75 hover:text-[#FDF2F8]'
+                isDev ? 'text-[#F5D0FE]/75 hover:text-[#FDF2F8]' : ''
               }`}
             >
               {!isDev && (
                 <motion.span
                   layoutId="mode-toggle-pill"
                   transition={{ type: 'spring', stiffness: 420, damping: 32 }}
-                  className="absolute inset-0 -z-10 rounded-full bg-[#D7E2EA]"
+                  className="absolute inset-0 -z-10 rounded-full"
+                  style={{ backgroundColor: skyTheme.toggle.activeBg }}
                 />
               )}
               <Layers className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -321,8 +352,13 @@ export function HeroSection({ mode, onChangeMode }: HeroSectionProps) {
               role="tab"
               aria-selected={isDev}
               onClick={() => onChangeMode('dev')}
+              style={
+                !isDev
+                  ? { color: skyTheme.toggle.inactiveText }
+                  : undefined
+              }
               className={`relative z-10 inline-flex items-center gap-2 px-4 sm:px-5 py-2 rounded-full text-xs sm:text-sm font-medium uppercase tracking-widest transition-colors duration-200 cursor-pointer whitespace-nowrap shrink-0 ${
-                isDev ? 'text-white' : 'text-[#D7E2EA]/75 hover:text-white'
+                isDev ? 'text-white' : 'hover:opacity-100'
               }`}
             >
               {isDev && (
@@ -402,10 +438,11 @@ export function HeroSection({ mode, onChangeMode }: HeroSectionProps) {
         <FadeIn delay={0.35} y={20} className="pointer-events-auto">
           <p
             className={`font-light uppercase tracking-wide leading-snug max-w-[175px] sm:max-w-[235px] md:max-w-[280px] transition-colors duration-300 ${
-              isDev ? 'text-[#F5D0FE]' : skyTheme.textColorClass
+              isDev ? 'text-[#F5D0FE]' : ''
             }`}
             style={{
               fontSize: 'clamp(0.75rem, 1.4vw, 1.5rem)',
+              color: !isDev ? skyTheme.taglineColor : undefined,
               textShadow: !isDev ? skyTheme.textShadow : undefined,
             }}
           >
@@ -417,7 +454,7 @@ export function HeroSection({ mode, onChangeMode }: HeroSectionProps) {
 
         <FadeIn delay={0.5} y={20} className="pointer-events-auto">
           <Magnet>
-            <ContactButton />
+            <ContactButton theme={!isDev ? skyTheme.button : undefined} />
           </Magnet>
         </FadeIn>
       </div>

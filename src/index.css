@@ -110,6 +110,121 @@
   animation: devOrbitReverse 60s linear infinite;
 }
 
+@keyframes designSunBreathe {
+  0%, 100% {
+    opacity: 0.85;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+}
+.design-sun-breathe {
+  animation: designSunBreathe 8.5s ease-in-out infinite;
+}
+
+@keyframes designSunbeamSway {
+  0%, 100% {
+    opacity: 0.55;
+    transform: rotate(19deg) translate3d(0, 0, 0);
+  }
+  50% {
+    opacity: 0.95;
+    transform: rotate(22deg) translate3d(-18px, 0, 0);
+  }
+}
+.design-sunbeam-sway {
+  animation: designSunbeamSway 11s ease-in-out infinite;
+}
+
+@keyframes designSunbeamSwayAlt {
+  0%, 100% {
+    opacity: 0.4;
+    transform: rotate(11deg) translate3d(0, 0, 0);
+  }
+  50% {
+    opacity: 0.85;
+    transform: rotate(14deg) translate3d(16px, 0, 0);
+  }
+}
+.design-sunbeam-sway-alt {
+  animation: designSunbeamSwayAlt 14s ease-in-out infinite;
+}
+
+@keyframes designVeilDrift {
+  0%, 100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(24vw, 1.5vh, 0);
+  }
+}
+.design-veil-drift {
+  animation: designVeilDrift 24s ease-in-out infinite;
+}
+.design-veil-drift-slow {
+  animation: designVeilDrift 34s ease-in-out infinite reverse;
+}
+
+@keyframes designFogDrift {
+  0%, 100% {
+    transform: translate3d(-6vw, 0, 0);
+    opacity: 0.65;
+  }
+  50% {
+    transform: translate3d(6vw, 0, 0);
+    opacity: 0.95;
+  }
+}
+.design-fog-drift {
+  animation: designFogDrift 18s ease-in-out infinite;
+}
+.design-fog-drift-reverse {
+  animation: designFogDrift 24s ease-in-out infinite reverse;
+}
+
+@keyframes designWindSweep {
+  0% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate3d(135vw, -18px, 0);
+    opacity: 0;
+  }
+}
+.design-wind-stream {
+  animation: designWindSweep 5s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+}
+
+@keyframes designShootingLine {
+  0%, 82% {
+    transform: translate3d(0, 0, 0) rotate(14deg);
+    opacity: 0;
+  }
+  85% {
+    opacity: 0.9;
+  }
+  94% {
+    transform: translate3d(125vw, 26vh, 0) rotate(14deg);
+    opacity: 0;
+  }
+  100% {
+    transform: translate3d(125vw, 26vh, 0) rotate(14deg);
+    opacity: 0;
+  }
+}
+.design-shooting-line {
+  animation: designShootingLine 13s linear infinite;
+}
+
 @keyframes designStarTwinkle {
   0%, 100% {
     opacity: 0.25;
@@ -165,13 +280,17 @@
     opacity: 0;
   }
   15% {
-    opacity: 0.75;
+    opacity: 0.78;
+  }
+  50% {
+    transform: translate3d(22px, 52vh, 0);
+    opacity: 0.72;
   }
   85% {
     opacity: 0.65;
   }
   100% {
-    transform: translate3d(28px, 108vh, 0);
+    transform: translate3d(-12px, 108vh, 0);
     opacity: 0;
   }
 }
@@ -180,6 +299,15 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .design-sun-breathe,
+  .design-sunbeam-sway,
+  .design-sunbeam-sway-alt,
+  .design-veil-drift,
+  .design-veil-drift-slow,
+  .design-fog-drift,
+  .design-fog-drift-reverse,
+  .design-wind-stream,
+  .design-shooting-line,
   .design-star-twinkle,
   .design-storm-flash,
   .design-rain-streak,
