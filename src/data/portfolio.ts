@@ -1,3 +1,5 @@
+export type PortfolioMode = 'design' | 'dev';
+
 export interface ServiceItem {
   number: string;
   name: string;
@@ -7,51 +9,54 @@ export interface ServiceItem {
 export interface ProjectItem {
   number: string;
   name: string;
-  category: 'Client' | 'Personal';
+  category: string;
   year: string;
   role: string;
   summary: string;
   deliverables: string[];
-  githubUrl: string;
+  liveUrl: string;
+  liveLabel: string;
   col1Image1: string;
   col1Image2: string;
   col2Image: string;
 }
 
-export const MARQUEE_IMAGES: string[] = [
-  'https://motionsites.ai/assets/hero-space-voyage-preview-eECLH3Yc.gif',
-  'https://motionsites.ai/assets/hero-codenest-preview-Cgppc2qV.gif',
-  'https://motionsites.ai/assets/hero-vex-ventures-preview-BczMFIiw.gif',
-  'https://motionsites.ai/assets/hero-stellar-ai-v2-preview-DjvxjG3C.gif',
-  'https://motionsites.ai/assets/hero-asme-preview-B_nGDnTP.gif',
-  'https://motionsites.ai/assets/hero-transform-data-preview-Cx5OU29N.gif',
-  'https://motionsites.ai/assets/hero-vitara-preview-Cjz2QYyU.gif',
-  'https://motionsites.ai/assets/hero-terra-preview-BFjrCr7T.gif',
-  'https://motionsites.ai/assets/hero-skyelite-preview-DHaZIgUv.gif',
-  'https://motionsites.ai/assets/hero-aethera-preview-DknSlcTa.gif',
-  'https://motionsites.ai/assets/hero-designpro-preview-D8c5_een.gif',
-  'https://motionsites.ai/assets/hero-stellar-ai-preview-D3HL6bw1.gif',
-  'https://motionsites.ai/assets/hero-xportfolio-preview-D4A8maiC.gif',
-  'https://motionsites.ai/assets/hero-orbit-web3-preview-BXt4OttD.gif',
-  'https://motionsites.ai/assets/hero-nexora-preview-cx5HmUgo.gif',
-  'https://motionsites.ai/assets/hero-evr-ventures-preview-DZxeVFEX.gif',
-  'https://motionsites.ai/assets/hero-planet-orbit-preview-DWAP8Z1P.gif',
-  'https://motionsites.ai/assets/hero-new-era-preview-CocuDUm9.gif',
-  'https://motionsites.ai/assets/hero-wealth-preview-B70idl_u.gif',
-  'https://motionsites.ai/assets/hero-luminex-preview-CxOP7ce6.gif',
-  'https://motionsites.ai/assets/hero-celestia-preview-0yO3jXO8.gif',
-];
+export interface AboutDecorationSet {
+  topLeft: string;
+  bottomLeft: string;
+  topRight: string;
+  bottomRight: string;
+}
 
-export const ABOUT_DECORATIONS = {
-  moon: 'https://shrug-person-78902957.figma.site/_components/v2/ebb2b8f25d8e24d5f0a5ca8af4c950de81aa2fd7/moon_icon.11395d36.png',
-  objectBottomLeft:
+export const INSTAGRAM_URL = 'https://www.instagram.com/creatiing';
+export const GITHUB_URL = 'https://github.com/gurjaryuvraj';
+export const NODE_IMAGE_PROCESSOR_URL =
+  'https://github.com/gurjaryuvraj/node-based-image-processor';
+export const IASIFY_URL = 'https://iasify.in';
+
+export function isVideoAsset(src: string): boolean {
+  return /\.(mp4|webm|ogg)(\?.*)?$/i.test(src);
+}
+
+export const DESIGN_ABOUT_DECORATIONS: AboutDecorationSet = {
+  topLeft:
+    'https://shrug-person-78902957.figma.site/_components/v2/ebb2b8f25d8e24d5f0a5ca8af4c950de81aa2fd7/moon_icon.11395d36.png',
+  bottomLeft:
     'https://shrug-person-78902957.figma.site/_components/v2/ebb2b8f25d8e24d5f0a5ca8af4c950de81aa2fd7/p59_1.4659672e.png',
-  lego: 'https://shrug-person-78902957.figma.site/_components/v2/ebb2b8f25d8e24d5f0a5ca8af4c950de81aa2fd7/lego_icon-1.703bb594.png',
-  groupBottomRight:
+  topRight:
+    'https://shrug-person-78902957.figma.site/_components/v2/ebb2b8f25d8e24d5f0a5ca8af4c950de81aa2fd7/lego_icon-1.703bb594.png',
+  bottomRight:
     'https://shrug-person-78902957.figma.site/_components/v2/ebb2b8f25d8e24d5f0a5ca8af4c950de81aa2fd7/Group_134-1.2e04f3ce.png',
 };
 
-export const SERVICES: ServiceItem[] = [
+export const DEV_ABOUT_DECORATIONS: AboutDecorationSet = {
+  topLeft: '/src/assets/images/dev_icon_code_1795406820868.jpg',
+  bottomLeft: '/src/assets/images/dev_icon_terminal_1795406822122.jpg',
+  topRight: '/src/assets/images/dev_icon_chip_1795406821057.jpg',
+  bottomRight: '/src/assets/images/dev_icon_server_1795406822896.jpg',
+};
+
+export const DESIGN_SERVICES: ServiceItem[] = [
   {
     number: '01',
     name: '3D Modeling',
@@ -84,56 +89,132 @@ export const SERVICES: ServiceItem[] = [
   },
 ];
 
-export const PROJECTS: ProjectItem[] = [
+export const DEV_SERVICES: ServiceItem[] = [
   {
     number: '01',
-    name: 'Nextlevel Studio',
-    category: 'Client',
-    year: '2026',
-    role: '3D Direction & Web Design',
-    summary:
-      'Full 3D visual direction, interactive spatial hero renders, and digital flagship design for Nextlevel Studio — built to highlight sculptural product craft with bold kinetic lighting.',
-    deliverables: ['3D Hero Scenes', 'Custom Shaders & Lighting', 'Digital Brand System'],
-    githubUrl: 'https://github.com/gurjaryuvraj',
-    col1Image1:
-      'https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260412_055344_5eff02e0-87a5-41ce-b64f-eb08da8f33db.png&w=1280&q=85',
-    col1Image2:
-      'https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260412_055431_11d841fd-8b41-46a5-82e4-b04f2407a7d8.png&w=1280&q=85',
-    col2Image:
-      'https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260412_055451_e317bf2d-28d4-48cc-86b0-6f72f25b6327.png&w=1280&q=85',
+    name: 'Full-Stack Web Apps',
+    description:
+      'End-to-end architecture and engineering of fast, scalable web applications with TypeScript, React, Node.js, and modern cloud databases.',
   },
   {
     number: '02',
-    name: 'Aura Brand Identity',
-    category: 'Personal',
-    year: '2026',
-    role: '3D Lookdev & Brand System',
-    summary:
-      'An exploratory personal identity study merging tactile glass, iridescent studio lighting, and minimalist editorial typography into a cohesive multi-surface visual world.',
-    deliverables: ['3D Art Direction', 'Material Library', 'Brand Guidelines'],
-    githubUrl: 'https://github.com/gurjaryuvraj',
-    col1Image1:
-      'https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260412_055654_911201c5-36d9-4bc6-bac7-331adfce159f.png&w=1280&q=85',
-    col1Image2:
-      'https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260412_055723_5ceda0b8-d9c2-4665-b2e3-83ba19ba76d1.png&w=1280&q=85',
-    col2Image:
-      'https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260412_055753_adc5dcbd-a8e6-49c0-b43a-9b030d835cea.png&w=1280&q=85',
+    name: 'Machine Learning',
+    description:
+      'Building end-to-end ML pipelines, biological sequence feature engineering, transformer embeddings, Random Forest, and neural network models.',
   },
   {
     number: '03',
-    name: 'Solaris Digital',
-    category: 'Client',
-    year: '2026',
-    role: 'Motion Design & Product Visualization',
+    name: 'Image Processing',
+    description:
+      'Designing modular node-based visual pipelines, real-time convolution filters, graph execution engines, and interactive graphics tooling.',
+  },
+  {
+    number: '04',
+    name: 'Backend & APIs',
+    description:
+      'Architecting resilient REST and WebSocket backends, secure authentication flows, real-time matchmaking engines, and low-latency data pipelines.',
+  },
+  {
+    number: '05',
+    name: 'Real-Time Platforms',
+    description:
+      'Shipping gamified assessment products like IASify.in with live 1v1 competitive queues, Elo rating systems, and granular analytics dashboards.',
+  },
+];
+
+export const DESIGN_PROJECTS: ProjectItem[] = [
+  {
+    number: '01',
+    name: 'Cozy Winter Attic',
+    category: 'Instagram · @creatiing',
+    year: '2025',
+    role: '3D Interior & Lighting',
     summary:
-      'Bespoke 3D product visualization and motion design campaign for Solaris Digital, translating complex digital infrastructure into luminous, tactile architectural forms.',
-    deliverables: ['Photorealistic Renders', 'Motion Launch Reel', 'Interactive Web Assets'],
-    githubUrl: 'https://github.com/gurjaryuvraj',
-    col1Image1:
-      'https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260412_055759_963cfb0b-4bd1-4b0f-9d0a-09bd6cf95b2f.png&w=1280&q=85',
-    col1Image2:
-      'https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260412_060108_438f781a-9846-4dcc-89ab-c4e6cb830f5b.png&w=1280&q=85',
+      'A warm A-frame wooden attic scene rendered in 3D for @creatiing, pairing exposed timber rafters, draped fairy string lights, snowy skylight glass, soft cloth bedding, and a glowing decorated Christmas tree.',
+    deliverables: ['3D Interior Modeling', 'Warm Practical Lighting', 'Cloth & Wood Lookdev'],
+    liveUrl: INSTAGRAM_URL,
+    liveLabel: 'View on Instagram',
+    col1Image1: '/assets/aistudio/cozy_main.jpg',
+    col1Image2: '/assets/aistudio/cozy_bed_angle.jpg',
+    col2Image: '/assets/aistudio/cozy_tree_tall.jpg',
+  },
+  {
+    number: '02',
+    name: 'Storm Jet Flight',
+    category: 'Instagram · @creatiing',
+    year: '2025',
+    role: '3D Aviation & Volumetrics',
+    summary:
+      'A dramatic 3D aviation study from @creatiing featuring a custom hard-surface silver T-tail business jet cutting through overcast volumetric storm clouds with crimson navigation beacons and cool rim highlights.',
+    deliverables: ['Hard-Surface Aircraft', 'Volumetric Clouds', 'Multi-Angle Renders'],
+    liveUrl: INSTAGRAM_URL,
+    liveLabel: 'View on Instagram',
+    col1Image1: '/assets/aistudio/jet_main.jpg',
+    col1Image2: '/src/assets/images/design_jet_angle2_1795408727410.jpg',
+    col2Image: '/src/assets/images/design_jet_angle3_1795408726180.jpg',
+  },
+  {
+    number: '03',
+    name: 'Twilight Horizon',
+    category: 'Instagram · @creatiing',
+    year: '2025',
+    role: '3D Ocean & Atmosphere',
+    summary:
+      'An atmospheric 3D seascape posted on @creatiing capturing dark jagged mountain peaks silhouetted against a golden-rose twilight sky, rippling ocean reflections, and a lone crimson buoy adrift in calm waters.',
+    deliverables: ['Ocean Shader & Ripples', 'Atmospheric Sunset Sky', 'Environment Framing'],
+    liveUrl: INSTAGRAM_URL,
+    liveLabel: 'View on Instagram',
+    col1Image1: '/assets/aistudio/ocean_main.jpg',
+    col1Image2: '/src/assets/images/design_ocean_angle3_1795408727579.jpg',
     col2Image:
-      'https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260412_055818_9d062121-ad7e-46b9-999a-1a6a692ef1ee.png&w=1280&q=85',
+      '/assets/aistudio/AQPVf4i2Z1DFGAB9NkB7K4MpBfco_sQ1bHqTkG0S5yJnyh6f-KIPjpRmJ4XqlD0sYnYtaqCDPRgTimyMuoObfz5VUtWYplbDVaXzIVI_033058b8.mp4',
+  },
+];
+
+export const DEV_PROJECTS: ProjectItem[] = [
+  {
+    number: '01',
+    name: 'IASify.in',
+    category: 'Live Product · Full-Stack',
+    year: '2026',
+    role: 'Founder & Full-Stack Engineer',
+    summary:
+      'A gamified, ad-free UPSC Civil Services preparation platform featuring real-pattern 100-question Prelims simulations, live 1v1 competitive MCQ battles with Elo ratings, global leaderboards, and granular subject performance analytics.',
+    deliverables: ['UPSC Prelims Simulator', 'Live 1v1 Elo Battles', 'Analytics Dashboard'],
+    liveUrl: IASIFY_URL,
+    liveLabel: 'Visit iasify.in',
+    col1Image1: '/src/assets/images/dev_iasify_dashboard_1795406826843.jpg',
+    col1Image2: '/src/assets/images/dev_iasify_battle_1795406829481.jpg',
+    col2Image: '/src/assets/images/dev_iasify_analytics_1795406822676.jpg',
+  },
+  {
+    number: '02',
+    name: 'Node-Based Image Processor',
+    category: 'Open Source · GitHub',
+    year: '2025',
+    role: 'Graphics & Systems Developer',
+    summary:
+      'A visual node-graph image processing engine enabling non-destructive chaining of filters, color adjustments, convolution kernels, and real-time split previews through a modular directed acyclic graph pipeline.',
+    deliverables: ['DAG Node Execution Engine', 'Custom Filter Kernels', 'Live Preview Workspace'],
+    liveUrl: NODE_IMAGE_PROCESSOR_URL,
+    liveLabel: 'View on GitHub',
+    col1Image1: '/src/assets/images/dev_nodeproc_graph_1795408723127.jpg',
+    col1Image2: '/src/assets/images/dev_nodeproc_filters_1795408725476.jpg',
+    col2Image: '/src/assets/images/dev_nodeproc_tall_1795408725643.jpg',
+  },
+  {
+    number: '03',
+    name: 'DNA Sequence Data Analytics',
+    category: 'Machine Learning · Research',
+    year: 'Aug – Nov 2025',
+    role: 'ML Research · Molecular Dynamics',
+    summary:
+      'Built a data pipeline from molecular dynamics simulations and engineered numerical features from biological sequences. Applied ML models (Random Forest, Neural Networks) using transformer-based embeddings for prediction tasks, achieving R² ≈ 0.46 and lowest MSE with Random Forest, outperforming baseline models through comparative analysis.',
+    deliverables: ['MD Simulation Pipeline', 'Transformer Embeddings', 'Random Forest · R² ≈ 0.46'],
+    liveUrl: GITHUB_URL,
+    liveLabel: 'View on GitHub',
+    col1Image1: '/src/assets/images/dev_dna_helix_1795408724647.jpg',
+    col1Image2: '/src/assets/images/dev_dna_ml_dashboard_1795408725076.jpg',
+    col2Image: '/src/assets/images/dev_dna_tall_1795408726596.jpg',
   },
 ];
