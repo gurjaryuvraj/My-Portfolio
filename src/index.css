@@ -82,8 +82,9 @@
   user-select: none;
   -webkit-user-drag: none;
 }
-#faceGl { position: absolute; left: -35%; top: -35%; width: 170%; height: 170%; pointer-events: none; }
-#faceProps { position: absolute; inset: 0; pointer-events: none; }
+#faceGl, #faceParticles { position: absolute; left: -35%; top: -35%; width: 170%; height: 170%; pointer-events: none; }
+#faceParticles { z-index: 2; }
+#faceProps { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
 #faceFly, #faceHand { position: absolute; opacity: 0; transition: opacity .2s; transform: translate(-50%, -50%); }
 #faceFly { width: 6%; fill: #111; }
 #faceFly .wing { fill: rgba(220, 235, 255, .7); transform-origin: 16px 15px; animation: flap .05s linear infinite alternate; }
@@ -93,3 +94,18 @@
 #faceHand .grab { display: none; }
 #faceHand.shut .open { display: none; }
 #faceHand.shut .grab { display: block; }
+
+@keyframes devOrbitSlow {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+@keyframes devOrbitReverse {
+  from { transform: translate(-50%, -50%) rotate(360deg); }
+  to { transform: translate(-50%, -50%) rotate(0deg); }
+}
+.dev-orbit-slow {
+  animation: devOrbitSlow 42s linear infinite;
+}
+.dev-orbit-reverse {
+  animation: devOrbitReverse 60s linear infinite;
+}

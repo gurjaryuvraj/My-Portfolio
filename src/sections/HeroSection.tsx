@@ -1,10 +1,80 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Code2, Layers } from 'lucide-react';
 import { FadeIn } from '../components/FadeIn';
 import { ContactButton, LINKEDIN_URL } from '../components/ContactButton';
 import { Magnet } from '../components/Magnet';
 import type { PortfolioMode } from '../data/portfolio';
+
+interface DevFaceLighting {
+  name: string;
+  orbColor: string;
+  topRight: string;
+  bottomLeft: string;
+  center: string;
+  ringColor: string;
+  gridColor: string;
+  portraitGlow: string;
+  portraitHoverGlow: string;
+}
+
+const DEV_LIGHTING_THEMES: DevFaceLighting[] = [
+  {
+    name: 'Neural',
+    orbColor: '#00E5FF',
+    topRight: 'radial-gradient(circle, rgba(236,72,153,0.36) 0%, rgba(168,85,247,0.18) 45%, transparent 72%)',
+    bottomLeft: 'radial-gradient(circle, rgba(0,229,255,0.30) 0%, rgba(124,58,237,0.16) 45%, transparent 72%)',
+    center: 'radial-gradient(circle, rgba(217,70,239,0.28) 0%, rgba(0,229,255,0.16) 50%, transparent 74%)',
+    ringColor: 'rgba(0, 229, 255, 0.24)',
+    gridColor: 'rgba(236, 72, 153, 0.14)',
+    portraitGlow: 'drop-shadow(0 0 36px rgba(236,72,153,0.36)) drop-shadow(0 0 64px rgba(0,229,255,0.24))',
+    portraitHoverGlow: 'drop-shadow(0 0 46px rgba(0,229,255,0.52)) drop-shadow(0 0 85px rgba(236,72,153,0.38))',
+  },
+  {
+    name: 'Holo',
+    orbColor: '#F472B6',
+    topRight: 'radial-gradient(circle, rgba(244,114,182,0.40) 0%, rgba(192,132,252,0.22) 45%, transparent 72%)',
+    bottomLeft: 'radial-gradient(circle, rgba(56,189,248,0.34) 0%, rgba(244,114,182,0.18) 45%, transparent 72%)',
+    center: 'radial-gradient(circle, rgba(192,132,252,0.34) 0%, rgba(56,189,248,0.20) 50%, transparent 74%)',
+    ringColor: 'rgba(244, 114, 182, 0.28)',
+    gridColor: 'rgba(56, 189, 248, 0.15)',
+    portraitGlow: 'drop-shadow(0 0 40px rgba(244,114,182,0.42)) drop-shadow(0 0 70px rgba(56,189,248,0.28))',
+    portraitHoverGlow: 'drop-shadow(0 0 54px rgba(244,114,182,0.58)) drop-shadow(0 0 92px rgba(56,189,248,0.45))',
+  },
+  {
+    name: 'Mesh',
+    orbColor: '#22D3EE',
+    topRight: 'radial-gradient(circle, rgba(34,211,238,0.36) 0%, rgba(59,130,246,0.20) 45%, transparent 72%)',
+    bottomLeft: 'radial-gradient(circle, rgba(59,130,246,0.34) 0%, rgba(232,121,249,0.16) 45%, transparent 72%)',
+    center: 'radial-gradient(circle, rgba(34,211,238,0.30) 0%, rgba(59,130,246,0.20) 50%, transparent 74%)',
+    ringColor: 'rgba(34, 211, 238, 0.30)',
+    gridColor: 'rgba(59, 130, 246, 0.18)',
+    portraitGlow: 'drop-shadow(0 0 38px rgba(34,211,238,0.42)) drop-shadow(0 0 68px rgba(59,130,246,0.28))',
+    portraitHoverGlow: 'drop-shadow(0 0 52px rgba(34,211,238,0.60)) drop-shadow(0 0 90px rgba(232,121,249,0.36))',
+  },
+  {
+    name: 'Quantum',
+    orbColor: '#E879F9',
+    topRight: 'radial-gradient(circle, rgba(192,38,211,0.42) 0%, rgba(250,204,21,0.16) 48%, transparent 72%)',
+    bottomLeft: 'radial-gradient(circle, rgba(147,51,234,0.38) 0%, rgba(236,72,153,0.22) 45%, transparent 72%)',
+    center: 'radial-gradient(circle, rgba(236,72,153,0.34) 0%, rgba(168,85,247,0.24) 50%, transparent 74%)',
+    ringColor: 'rgba(250, 204, 21, 0.24)',
+    gridColor: 'rgba(192, 38, 211, 0.18)',
+    portraitGlow: 'drop-shadow(0 0 42px rgba(192,38,211,0.45)) drop-shadow(0 0 72px rgba(250,204,21,0.22))',
+    portraitHoverGlow: 'drop-shadow(0 0 56px rgba(236,72,153,0.60)) drop-shadow(0 0 95px rgba(250,204,21,0.38))',
+  },
+  {
+    name: 'Matrix',
+    orbColor: '#10B981',
+    topRight: 'radial-gradient(circle, rgba(16,185,129,0.34) 0%, rgba(6,182,212,0.18) 45%, transparent 72%)',
+    bottomLeft: 'radial-gradient(circle, rgba(6,182,212,0.32) 0%, rgba(124,58,237,0.18) 45%, transparent 72%)',
+    center: 'radial-gradient(circle, rgba(16,185,129,0.26) 0%, rgba(6,182,212,0.20) 50%, transparent 74%)',
+    ringColor: 'rgba(16, 185, 129, 0.28)',
+    gridColor: 'rgba(6, 182, 212, 0.16)',
+    portraitGlow: 'drop-shadow(0 0 38px rgba(16,185,129,0.40)) drop-shadow(0 0 68px rgba(6,182,212,0.26))',
+    portraitHoverGlow: 'drop-shadow(0 0 52px rgba(16,185,129,0.58)) drop-shadow(0 0 90px rgba(6,182,212,0.42))',
+  },
+];
 
 interface HeroSectionProps {
   mode: PortfolioMode;
@@ -13,6 +83,36 @@ interface HeroSectionProps {
 
 export function HeroSection({ mode, onChangeMode }: HeroSectionProps) {
   const isDev = mode === 'dev';
+  const [devThemeIndex, setDevThemeIndex] = useState(0);
+  const [devHoveringFace, setDevHoveringFace] = useState(false);
+  const [devHoloWave, setDevHoloWave] = useState(false);
+  const [devBurstId, setDevBurstId] = useState(0);
+
+  useEffect(() => {
+    const handleDevTheme = (e: Event) => {
+      const detail = (
+        e as CustomEvent<{
+          themeIndex: number;
+          hovering: boolean;
+          burstId: number;
+          holoWave?: boolean;
+        }>
+      ).detail;
+      if (!detail) return;
+      setDevThemeIndex(detail.themeIndex);
+      setDevHoveringFace(Boolean(detail.hovering));
+      setDevHoloWave(Boolean(detail.holoWave));
+      setDevBurstId(detail.burstId);
+    };
+    window.addEventListener('dev-face-theme', handleDevTheme);
+    return () => window.removeEventListener('dev-face-theme', handleDevTheme);
+  }, []);
+
+  // During the 3D Holographic Transformation Wave, swell ambient lighting into bright holographic prism colors
+  const activeLighting = devHoloWave
+    ? DEV_LIGHTING_THEMES[1]
+    : (DEV_LIGHTING_THEMES[devThemeIndex] ?? DEV_LIGHTING_THEMES[0]);
+  const boostGlow = devHoveringFace || devHoloWave;
 
   const handleScrollTo = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
     e.preventDefault();
@@ -27,34 +127,80 @@ export function HeroSection({ mode, onChangeMode }: HeroSectionProps) {
       className="relative h-screen flex flex-col justify-between bg-[#0C0C0C] transition-colors duration-500"
       style={{ overflowX: 'clip' }}
     >
-      {/* Futuristic Neon Pink & Purple Ambient Lighting (Dev Mode) */}
+      {/* Dynamic Cyber-AI Ambient Lighting & Neural Field (Dev Mode — shifts with face graphic) */}
       <div
         aria-hidden="true"
-        className={`pointer-events-none absolute inset-0 transition-opacity duration-700 ${
+        className={`pointer-events-none absolute inset-0 overflow-hidden transition-opacity duration-700 ${
           isDev ? 'opacity-100' : 'opacity-0'
         }`}
       >
+        {/* Subtle Perspective Cyber Grid */}
         <div
-          className="absolute -top-24 -right-24 w-[540px] h-[540px] rounded-full blur-[130px]"
+          className="absolute inset-0 transition-opacity duration-700"
           style={{
-            background:
-              'radial-gradient(circle, rgba(236,72,153,0.34) 0%, rgba(168,85,247,0.18) 45%, transparent 72%)',
+            opacity: boostGlow ? 0.58 : 0.28,
+            backgroundImage: `linear-gradient(${activeLighting.gridColor} 1px, transparent 1px), linear-gradient(90deg, ${activeLighting.gridColor} 1px, transparent 1px)`,
+            backgroundSize: '56px 56px',
+            maskImage: 'radial-gradient(circle at 50% 52%, black 18%, transparent 72%)',
+            WebkitMaskImage: 'radial-gradient(circle at 50% 52%, black 18%, transparent 72%)',
+          }}
+        />
+
+        {/* Reactive 3-Point Volumetric Spotlights */}
+        <div
+          className="absolute -top-24 -right-24 w-[560px] h-[560px] rounded-full blur-[130px] transition-all duration-700"
+          style={{
+            background: activeLighting.topRight,
+            transform: boostGlow ? 'scale(1.14)' : 'scale(1)',
           }}
         />
         <div
-          className="absolute -bottom-32 -left-24 w-[520px] h-[520px] rounded-full blur-[130px]"
+          className="absolute -bottom-32 -left-24 w-[540px] h-[540px] rounded-full blur-[130px] transition-all duration-700"
           style={{
-            background:
-              'radial-gradient(circle, rgba(168,85,247,0.32) 0%, rgba(236,72,153,0.16) 45%, transparent 72%)',
+            background: activeLighting.bottomLeft,
+            transform: boostGlow ? 'scale(1.14)' : 'scale(1)',
           }}
         />
         <div
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[560px] h-[560px] rounded-full blur-[115px]"
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-[115px] transition-all duration-700"
           style={{
-            background:
-              'radial-gradient(circle, rgba(217,70,239,0.28) 0%, rgba(124,58,237,0.18) 50%, transparent 74%)',
+            background: activeLighting.center,
+            transform: boostGlow
+              ? 'translate(-50%, -50%) scale(1.20)'
+              : 'translate(-50%, -50%) scale(1)',
           }}
         />
+
+        {/* Orbital Holographic Rings Centered Behind Portrait */}
+        <div
+          className="dev-orbit-slow absolute left-1/2 top-1/2 w-[min(78vw,640px)] h-[min(78vw,640px)] rounded-full border border-dashed transition-colors duration-700"
+          style={{
+            borderColor: activeLighting.ringColor,
+            opacity: boostGlow ? 0.75 : 0.34,
+          }}
+        />
+        <div
+          className="dev-orbit-reverse absolute left-1/2 top-1/2 w-[min(62vw,500px)] h-[min(62vw,500px)] rounded-full border transition-colors duration-700"
+          style={{
+            borderColor: activeLighting.ringColor,
+            opacity: boostGlow ? 0.58 : 0.22,
+          }}
+        />
+
+        {/* Expanding Shockwave Pulse Ring on Face Morph Click */}
+        {isDev && devBurstId > 0 && (
+          <motion.div
+            key={devBurstId}
+            initial={{ scale: 0.35, opacity: 0.75 }}
+            animate={{ scale: 2.05, opacity: 0 }}
+            transition={{ duration: 0.95, ease: [0.16, 1, 0.3, 1] }}
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[380px] h-[380px] rounded-full border-2"
+            style={{
+              borderColor: activeLighting.orbColor,
+              boxShadow: `0 0 42px ${activeLighting.orbColor}`,
+            }}
+          />
+        )}
       </div>
 
       {/* Top Navbar */}
@@ -117,7 +263,7 @@ export function HeroSection({ mode, onChangeMode }: HeroSectionProps) {
           </FadeIn>
         </div>
 
-        {/* Design / Dev Toggle — positioned below "yuvraj" on the right side with vertical breathing room */}
+        {/* Design / Dev Toggle — positioned cleanly below "yuvraj" on the right side */}
         <FadeIn
           delay={0.28}
           y={16}
@@ -180,16 +326,18 @@ export function HeroSection({ mode, onChangeMode }: HeroSectionProps) {
         </FadeIn>
       </div>
 
-      {/* The Living Portrait — centered in hero, no Magnet wrapper */}
+      {/* The Living Portrait — centered in hero */}
       <div className="hero-portrait-wrap" id="magnetWrap">
         <FadeIn delay={0.6} y={30} className="w-full">
           <div
-            className="hero-portrait-inner fade-in"
+            className="hero-portrait-inner fade-in transition-[filter] duration-500"
             id="magnetInner"
             style={{
               ['--fade-y' as string]: '30px',
               filter: isDev
-                ? 'drop-shadow(0 0 38px rgba(236, 72, 153, 0.34)) drop-shadow(0 0 65px rgba(168, 85, 247, 0.25))'
+                ? boostGlow
+                  ? activeLighting.portraitHoverGlow
+                  : activeLighting.portraitGlow
                 : 'none',
             }}
             data-delay="600"
@@ -202,6 +350,7 @@ export function HeroSection({ mode, onChangeMode }: HeroSectionProps) {
               referrerPolicy="no-referrer"
             />
             <canvas id="faceGl" aria-hidden="true" />
+            <canvas id="faceParticles" aria-hidden="true" />
             <div id="faceProps" aria-hidden="true">
               <svg id="faceFly" viewBox="0 0 32 32">
                 <path

@@ -36,9 +36,7 @@
     <script>
       window.__bootFaceEngine = function () {
         if (window.__faceEngine) return;
-        // ===== LIVING PORTRAIT =====
-        // A photo-like head on a soft sheet. Every expression, gaze and blink is a separately generated
-        // picture of the same face; the code only decides which one to show and makes the skin move.
+        // ===== LIVING PORTRAIT (DESIGN + DEV CYBER-HOLOGRAPHIC ENGINE) =====
         (() => {
           const ASSETS = {
             rest: '/src/assets/images/portrait_rest_1795368453047.jpg',
@@ -68,7 +66,6 @@
             blonde: '/src/assets/images/portrait_blonde_1795368935430.jpg'
           };
 
-          // Map secondary expression keys to our generated textures so every interaction and idle act works seamlessly
           const ALIAS = {
             ene: 'upright', nne: 'upright', nnw: 'upleft', wnw: 'upleft',
             wsw: 'left', ssw: 'downleft', sse: 'downright', ese: 'right',
@@ -91,10 +88,26 @@
           };
           const HAIRS = ['pink', 'blue', 'blonde'];
 
+          // 5 Cyber-AI Palettes for particle dispersion & neural links (matching GLSL styles 0..4)
+          const DEV_PALETTES = [
+            // 0: Neural Synapse (Cyan + Neon Pink + Violet)
+            { primary: [0, 229, 255], secondary: [236, 72, 153], accent: [168, 85, 247], link: 'rgba(56, 226, 255,' },
+            // 1: Iridescent Hologram (Hot Pink + Sky Prism + Orchid)
+            { primary: [244, 114, 182], secondary: [56, 189, 248], accent: [192, 132, 252], link: 'rgba(244, 114, 182,' },
+            // 2: Cybernetic Mesh (Cyber Cyan + Electric Blue + Magenta)
+            { primary: [34, 211, 238], secondary: [59, 130, 246], accent: [232, 121, 249], link: 'rgba(34, 211, 238,' },
+            // 3: Quantum Stardust (Ultraviolet + Magenta + Spark Gold)
+            { primary: [192, 38, 211], secondary: [250, 204, 21], accent: [236, 72, 153], link: 'rgba(232, 121, 249,' },
+            // 4: Biometric Matrix (Bio Emerald + Cyber Teal + Violet)
+            { primary: [16, 185, 129], secondary: [6, 182, 212], accent: [168, 85, 247], link: 'rgba(16, 225, 165,' }
+          ];
+
           const OVER = 1.7, N = 72, M = N + 1, SPAN = OVER / N, ORIGIN = .5 - OVER / 2;
           const WOBBLE = 2.3 * 2 * Math.PI, REACH = .085 / SPAN, C = REACH * WOBBLE, GAMMA = 2 * .14 * WOBBLE, NU = .2 * C;
 
           const wrap = document.getElementById('magnetWrap'), canvas = document.getElementById('faceGl'), layer = document.getElementById('faceProps');
+          const pCanvas = document.getElementById('faceParticles');
+          const pCtx = pCanvas ? pCanvas.getContext('2d') : null;
           const fly = document.getElementById('faceFly'), hand = document.getElementById('faceHand');
           const gl = canvas.getContext('webgl', {alpha: true, premultipliedAlpha: true, antialias: true});
           if (!gl) return;
@@ -104,25 +117,216 @@
           const VS = `attribute vec2 a, d; attribute float s; varying vec2 vUv; varying float vS;
             uniform vec2 lean; uniform float overS;
             void main(){ vUv = a; vS = s; vec2 p = a + d + lean; gl_Position = vec4(vec2(p.x-.5, .5-p.y)*2./overS, 0., 1.); }`;
+
           const FS = `precision highp float; varying vec2 vUv; varying float vS;
             uniform sampler2D faceA, faceB;
             uniform float fade;
+            uniform float uDevMix, uTime, uHover, uTheme, uPrevTheme, uThemeBlend, uScanWave, uHoloIn, uHoloOut;
+            uniform vec2 uPointer;
+
+            float hash21(vec2 p){
+              p = fract(p * vec2(123.34, 456.21));
+              p += dot(p, p + 45.32);
+              return fract(p.x * p.y);
+            }
+
+            float vnoise(vec2 p){
+              vec2 i = floor(p), f = fract(p);
+              f = f * f * (3.0 - 2.0 * f);
+              float a = hash21(i), b = hash21(i + vec2(1.0, 0.0));
+              float c = hash21(i + vec2(0.0, 1.0)), d = hash21(i + vec2(1.0, 1.0));
+              return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+            }
+
+            float fbm(vec2 p){
+              return vnoise(p) * 0.62 + vnoise(p * 2.13 + 3.7) * 0.38;
+            }
+
+            float luma(vec3 c){ return dot(c, vec3(0.299, 0.587, 0.114)); }
+
+            vec3 cyberStyle(float id, vec3 orig, float lum, float edge, vec2 grad, vec2 uv, float hField, float t){
+              // Keep Yuvraj's real eyes/nose/mouth likeness crisp while styling the surface
+              float coreFace = 1.0 - smoothstep(0.09, 0.32, length((uv - vec2(0.5, 0.52)) * vec2(1.25, 1.0)));
+              vec3 res = orig;
+
+              if (id < 0.5) {
+                // 0: NEURAL SYNAPSE (Cyan + Neon Pink + Violet)
+                vec3 coolBase = mix(orig, vec3(lum * 0.84, lum * 0.96, lum * 1.16) + vec3(0.05, 0.02, 0.12), 0.30 - coreFace * 0.14);
+                float diagA = smoothstep(0.95, 0.995, abs(sin((uv.x * 26.0 + uv.y * 26.0) + t * 0.55)));
+                float diagB = smoothstep(0.95, 0.995, abs(sin((uv.x * 26.0 - uv.y * 26.0) - t * 0.45)));
+                float nodeNet = max(diagA, diagB) * (0.14 + hField * 0.65) * (1.0 - coreFace * 0.45);
+                vec3 synCol = mix(vec3(0.0, 0.90, 1.0), vec3(0.93, 0.28, 0.62), 0.5 + 0.5 * sin(uv.y * 7.0 - t * 1.4));
+                float pulse = 0.72 + 0.28 * sin(t * 2.6 + uv.y * 9.0);
+                res = coolBase + synCol * edge * (0.95 + hField * 0.95) * pulse + synCol * nodeNet * 0.55;
+                res += vec3(0.66, 0.33, 0.97) * smoothstep(0.22, 0.55, abs(uv.x - 0.5)) * 0.24;
+              } else if (id < 1.5) {
+                // 1: IRIDESCENT HOLOGRAM (Pearl Rainbow Pink/Cyan/Violet Fresnel)
+                float ang = atan(grad.y, grad.x + 0.0001) + uv.y * 4.5 + t * 0.8 + hField * 2.2;
+                vec3 iri = 0.55 + 0.45 * cos(ang + vec3(0.0, 2.094, 4.188));
+                vec3 holoCol = mix(vec3(0.96, 0.45, 0.72), vec3(0.22, 0.74, 0.97), 0.5 + 0.5 * sin(uv.x * 6.0 - t));
+                vec3 glass = mix(orig, orig * (0.72 + iri * 0.65) + holoCol * (0.14 + lum * 0.18), 0.52 - coreFace * 0.20);
+                float scan = 0.92 + 0.08 * sin(uv.y * 190.0 - t * 7.0);
+                float sweep = 1.0 - smoothstep(0.0, 0.08, abs(fract(uv.y - t * 0.22) - 0.5));
+                res = glass * scan + iri * edge * (1.1 + hField * 0.9) + holoCol * sweep * 0.24;
+              } else if (id < 2.5) {
+                // 2: CYBERNETIC WIREFRAME & CIRCUIT (Cyber Cyan + Electric Blue + Magenta)
+                vec3 steel = mix(orig, vec3(lum * 0.72, lum * 0.95, lum * 1.18), 0.42 - coreFace * 0.16);
+                vec2 g = fract(uv * 34.0);
+                float wire = smoothstep(0.92, 0.99, max(max(g.x, 1.0 - g.x), max(g.y, 1.0 - g.y)));
+                float diag = smoothstep(0.94, 0.99, 1.0 - abs(g.x - g.y));
+                float mesh = max(wire, diag * 0.7) * (0.20 + hField * 0.65) * (1.0 - coreFace * 0.42);
+                float ripple = (1.0 - smoothstep(0.0, 0.045, abs(fract(length(uv - uPointer) * 4.5 - t * 0.9) - 0.5))) * hField;
+                vec3 cWire = mix(vec3(0.13, 0.83, 0.93), vec3(0.23, 0.51, 0.96), uv.y);
+                res = steel + cWire * (mesh * 0.65 + edge * (1.15 + hField * 0.7)) + vec3(0.91, 0.47, 0.98) * ripple * 0.75;
+              } else if (id < 3.5) {
+                // 3: QUANTUM STARDUST (Ultraviolet + Magenta + Starlight Gold)
+                vec3 cosmic = mix(orig, orig * vec3(1.06, 0.84, 1.18) + vec3(0.08, 0.01, 0.14), 0.44 - coreFace * 0.16);
+                float spark = smoothstep(0.84, 0.98, hash21(floor(uv * 115.0) + floor(t * 6.0) * 0.13));
+                float rim = smoothstep(0.18, 0.48, length(uv - vec2(0.5, 0.52)));
+                vec3 stardustCol = mix(vec3(0.93, 0.28, 0.60), vec3(0.99, 0.84, 0.28), spark);
+                res = cosmic + stardustCol * edge * (1.05 + hField * 1.1) + stardustCol * spark * (0.35 + rim * 0.7 + hField * 0.85);
+              } else {
+                // 4: BIOMETRIC MATRIX (Bio-Emerald + Cyber Teal + Violet Accent)
+                vec3 bio = mix(orig, vec3(lum * 0.65, lum * 1.06, lum * 0.94), 0.38 - coreFace * 0.16);
+                vec2 cell = fract(uv * 52.0) - 0.5;
+                float dots = (1.0 - smoothstep(0.12, 0.32, length(cell))) * (0.14 + hField * 0.55) * (1.0 - coreFace * 0.45);
+                float bar = 1.0 - smoothstep(0.0, 0.05, abs(uv.y - fract(t * 0.28)));
+                vec3 mCol = mix(vec3(0.06, 0.78, 0.56), vec3(0.04, 0.75, 0.86), uv.x);
+                res = bio + mCol * (edge * (1.0 + hField * 0.9) + dots * 0.48 + bar * 0.35) + vec3(0.55, 0.32, 0.96) * edge * 0.35;
+              }
+              return res;
+            }
+
             void main(){
               if(vUv.x<0.||vUv.y<0.||vUv.x>1.||vUv.y>1.){ gl_FragColor = vec4(0.); return; }
               vec4 c = mix(texture2D(faceA,vUv), texture2D(faceB,vUv), fade);
               if(c.a<.004){ gl_FragColor = vec4(0.); return; }
-              gl_FragColor = vec4(c.rgb*vS, c.a);
+
+              if (uDevMix < 0.002) {
+                gl_FragColor = vec4(c.rgb * vS, c.a);
+                return;
+              }
+
+              // Un-premultiply for crisp color & lighting math
+              vec3 orig = clamp(c.rgb / max(c.a, 0.001), 0.0, 1.0);
+              float lum = luma(orig);
+
+              // Subtle chromatic dispersion on active hover/morph
+              float dPtr = length(vUv - uPointer);
+              float hField = uHover * (1.0 - smoothstep(0.02, 0.28, dPtr));
+              if (hField > 0.02 || uScanWave > 0.01) {
+                float ca = (0.0028 * hField + 0.004 * sin(uScanWave * 3.14159));
+                float rCh = texture2D(faceB, vUv + vec2(ca, 0.0)).r / max(texture2D(faceB, vUv + vec2(ca, 0.0)).a, 0.001);
+                float bCh = texture2D(faceB, vUv - vec2(ca, 0.0)).b / max(texture2D(faceB, vUv - vec2(ca, 0.0)).a, 0.001);
+                orig = mix(orig, vec3(clamp(rCh, 0.0, 1.0), orig.g, clamp(bCh, 0.0, 1.0)), 0.42 * uDevMix);
+              }
+
+              // Sobel facial contour gradient from Yuvraj's real face
+              float eStep = 0.0030;
+              float lL = luma(texture2D(faceB, vUv - vec2(eStep, 0.0)).rgb);
+              float lR = luma(texture2D(faceB, vUv + vec2(eStep, 0.0)).rgb);
+              float lT = luma(texture2D(faceB, vUv - vec2(0.0, eStep)).rgb);
+              float lB = luma(texture2D(faceB, vUv + vec2(0.0, eStep)).rgb);
+              vec2 grad = vec2(lR - lL, lB - lT);
+              float edge = smoothstep(0.035, 0.24, length(grad));
+
+              // Blend previous & target cyber styles cleanly
+              vec3 stA = cyberStyle(uPrevTheme, orig, lum, edge, grad, vUv, hField, uTime);
+              vec3 stB = cyberStyle(uTheme, orig, lum, edge, grad, vUv, hField, uTime);
+              vec3 styled = mix(stA, stB, uThemeBlend);
+
+              // === 3D BRIGHT HOLOGRAPHIC TRANSFORMATION WAVE ===
+              // Sweeps across Yuvraj's exact face, transforming it into a glowing bright holographic 3D sculpture
+              // while conserving 100% of his facial shape & live expression, then sweeps back to his face.
+              if (uHoloIn > -0.18 && uHoloOut < 1.24) {
+                float wCurve = vUv.y * 0.86 + vUv.x * 0.24 - 0.08
+                  + sin(vUv.x * 11.0 + uTime * 2.8) * 0.024
+                  + (fbm(vUv * 8.5 + vec2(uTime * 0.5, -uTime * 0.4)) - 0.5) * 0.05;
+
+                float enterM = 1.0 - smoothstep(uHoloIn - 0.045, uHoloIn + 0.085, wCurve);
+                float exitM = 1.0 - smoothstep(uHoloOut - 0.045, uHoloOut + 0.085, wCurve);
+                float holoMask = clamp(enterM - exitM, 0.0, 1.0);
+
+                // Reconstruct 3D facial surface normal directly from Yuvraj's exact luminance gradient
+                vec3 N3 = normalize(vec3(-grad.x * 7.2, -grad.y * 7.2, 0.40));
+                float fresnel = pow(1.0 - max(N3.z, 0.0), 1.55);
+                float specA = pow(max(dot(N3, normalize(vec3(0.55, -0.45, 0.70))), 0.0), 12.0);
+                float specB = pow(max(dot(N3, normalize(vec3(-0.62, 0.30, 0.68))), 0.0), 9.0);
+
+                // Vivid bright holographic rainbow palette (hot magenta, electric cyan, neon violet, aqua-gold)
+                float hPhase = lum * 3.9 + N3.x * 1.5 - N3.y * 1.2 + vUv.y * 2.4 - uTime * 1.15;
+                vec3 prism = 0.56 + 0.44 * cos(hPhase + vec3(0.0, 2.094, 4.188));
+                vec3 neonTint = mix(
+                  vec3(0.05, 0.94, 1.0),
+                  vec3(1.0, 0.20, 0.76),
+                  0.5 + 0.5 * sin(vUv.x * 4.8 - vUv.y * 3.4 + uTime * 1.35)
+                );
+                vec3 holoBody = mix(prism, neonTint, 0.38) * (0.28 + 1.08 * pow(lum, 0.74));
+                // Glowing 3D Fresnel contours + pearlescent liquid-glass specular highlights
+                holoBody += vec3(0.18, 0.96, 1.0) * fresnel * 0.92;
+                holoBody += vec3(1.0, 0.25, 0.78) * edge * 1.05;
+                holoBody += vec3(1.0, 0.92, 1.0) * specA * 0.85 + vec3(0.32, 0.96, 1.0) * specB * 0.62;
+                // Subtle translucent contour ribbons flowing along facial depth
+                float ribbon = smoothstep(0.90, 0.99, abs(sin(lum * 16.0 - uTime * 2.2)));
+                holoBody += vec3(0.75, 0.95, 1.0) * ribbon * 0.28;
+                // Preserve subtle anchor of Yuvraj's real eyes/mouth tone inside the hologram
+                holoBody = mix(holoBody, holoBody * (0.55 + orig * 0.85), 0.22);
+
+                styled = mix(styled, holoBody, holoMask);
+
+                // Luminous iridescent wavefront plasma edge on both entry and return waves
+                float rimIn = (1.0 - smoothstep(0.0, 0.09, abs(wCurve - uHoloIn))) * smoothstep(-0.15, 0.02, uHoloIn) * (1.0 - smoothstep(1.02, 1.22, uHoloIn));
+                float rimOut = (1.0 - smoothstep(0.0, 0.09, abs(wCurve - uHoloOut))) * smoothstep(-0.15, 0.02, uHoloOut) * (1.0 - smoothstep(1.02, 1.22, uHoloOut));
+                float waveEdge = max(rimIn, rimOut);
+                vec3 plasmaCol = mix(vec3(0.15, 0.98, 1.0), vec3(1.0, 0.35, 0.88), 0.5 + 0.5 * sin(vUv.x * 10.0 + uTime * 5.0));
+                styled += (plasmaCol * 1.15 + vec3(0.95)) * waveEdge * 0.78;
+              }
+
+              // Sweeping holographic scan-wave on click-morph
+              if (uScanWave > 0.001 && uScanWave < 0.999) {
+                float waveDist = abs((vUv.y) - uScanWave);
+                float waveBand = (1.0 - smoothstep(0.0, 0.085, waveDist)) * sin(uScanWave * 3.14159);
+                styled += vec3(0.75, 0.95, 1.0) * waveBand * 0.95;
+              }
+
+              // Cursor-localized sparkling particle-dissolve erosion (matches flying 2D particles!)
+              float nDisp = fbm(vUv * 44.0 + vec2(uTime * 0.55, -uTime * 0.35));
+              float dissolveZone = uHover * (1.0 - smoothstep(0.015, 0.175, dPtr));
+              // Protect center of eyes slightly so gaze always remains crisp
+              float eyeProtect = smoothstep(0.06, 0.14, length((vUv - vec2(0.5, 0.46)) * vec2(0.8, 1.4)));
+              float dMask = dissolveZone * (0.52 + 0.48 * eyeProtect);
+              float thresh = dMask * 0.78;
+              float alphaOut = c.a;
+              if (dMask > 0.02) {
+                float keep = smoothstep(thresh - 0.12, thresh + 0.08, nDisp);
+                float burnRim = (1.0 - smoothstep(0.0, 0.16, abs(nDisp - thresh))) * dMask;
+                styled += mix(vec3(0.0, 0.92, 1.0), vec3(0.95, 0.35, 0.75), nDisp) * burnRim * 1.45;
+                alphaOut *= mix(1.0, 0.24 + 0.76 * keep, uDevMix);
+              }
+
+              // Subtle luminous outer silhouette fade in Quantum mode (style 3)
+              float rightDust = smoothstep(0.64, 0.86, vUv.x) * (uTheme > 2.5 && uTheme < 3.5 ? 0.38 : 0.12);
+              if (rightDust > 0.01) {
+                float rimKeep = smoothstep(rightDust * 0.85, rightDust * 0.85 + 0.25, nDisp);
+                alphaOut *= mix(1.0, 0.55 + 0.45 * rimKeep, uDevMix);
+              }
+
+              vec3 finalRgb = mix(orig * vS, styled * vS, uDevMix);
+              gl_FragColor = vec4(finalRgb * alphaOut, alphaOut);
             }`;
+
           const sh = (t, s) => { const o = gl.createShader(t); gl.shaderSource(o, s); gl.compileShader(o); if (!gl.getShaderParameter(o, gl.COMPILE_STATUS)) console.error(gl.getShaderInfoLog(o)); return o; };
           const pr = gl.createProgram();
           gl.attachShader(pr, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, FS));
           gl.linkProgram(pr); gl.useProgram(pr);
           const U = {over_: gl.getUniformLocation(pr, 'overS')};
-          for (const n of ['lean', 'faceA', 'faceB', 'fade']) U[n] = gl.getUniformLocation(pr, n);
+          for (const n of ['lean', 'faceA', 'faceB', 'fade', 'uDevMix', 'uTime', 'uPointer', 'uHover', 'uTheme', 'uPrevTheme', 'uThemeBlend', 'uScanWave', 'uHoloIn', 'uHoloOut']) {
+            U[n] = gl.getUniformLocation(pr, n);
+          }
           gl.uniform1f(U.over_, OVER);
           gl.uniform1i(U.faceA, 0); gl.uniform1i(U.faceB, 1);
 
-          // ---- the sheet: a damped wave equation on the displacement of each node ----
+          // ---- the sheet: damped wave mesh (used in Design mode) ----
           const count = M * M, ux = new Float32Array(count), uy = new Float32Array(count), vx = new Float32Array(count), vy = new Float32Array(count);
           const rest = new Float32Array(count * 2), dyn = new Float32Array(count * 3);
           const sx = new Float32Array(count), sy = new Float32Array(count);
@@ -216,12 +420,10 @@
               } else if (excess > tLow) {
                 const t = (excess - tLow) / (tHigh - tLow);
                 const a = 1 - t * t * (3 - 2 * t);
-                // Despill green fringe cleanly into neutral edge tone
                 const ng = Math.round(maxRB * 0.92 + (r < b ? r : b) * 0.08);
                 d[i + 1] = ng;
                 d[i + 3] = Math.round(a * 255);
               } else if (excess > 0) {
-                // Subtle despill on tight inner hair boundary
                 d[i + 1] = Math.round(maxRB + excess * 0.15);
                 d[i + 3] = 255;
               } else {
@@ -233,7 +435,62 @@
             return keyCanvas;
           }
 
-          // ---- pictures ----
+          // ---- Interactive Face Particle Field (sampled directly from Yuvraj's real face) ----
+          const particles = [];
+          function buildFaceParticles(source) {
+            particles.length = 0;
+            const G = 96;
+            const c = document.createElement('canvas'); c.width = c.height = G;
+            const ctx = c.getContext('2d', {willReadFrequently: true});
+            ctx.drawImage(source, 0, 0, G, G);
+            const data = ctx.getImageData(0, 0, G, G).data;
+
+            const alphaAt = (x, y) => {
+              if (x < 0 || y < 0 || x >= G || y >= G) return 0;
+              return data[(y * G + x) * 4 + 3];
+            };
+
+            const stride = innerWidth < 760 ? 2 : 2;
+            for (let y = 2; y < G - 2; y += stride) {
+              for (let x = 2; x < G - 2; x += stride) {
+                const i = (y * G + x) * 4;
+                const a = data[i + 3];
+                if (a < 130) continue;
+                // Detect silhouette/contour boundary for higher ambient energy
+                const nMin = Math.min(alphaAt(x - 2, y), alphaAt(x + 2, y), alphaAt(x, y - 2), alphaAt(x, y + 2));
+                const isEdge = nMin < 140 ? 1 : 0;
+                const u = (x + (Math.random() - 0.5) * 0.85) / G;
+                const v = (y + (Math.random() - 0.5) * 0.85) / G;
+                particles.push({
+                  u, v,
+                  r: data[i], g: data[i + 1], b: data[i + 2],
+                  ox: 0, oy: 0, vx: 0, vy: 0,
+                  e: 0,
+                  edge: isEdge,
+                  sz: isEdge ? (1.2 + Math.random() * 1.9) : (1.0 + Math.random() * 1.6),
+                  ph: Math.random() * Math.PI * 2,
+                  colorPick: Math.random()
+                });
+              }
+            }
+          }
+
+          function triggerParticleBurst(cu, cv, strength = 1.0) {
+            for (let i = 0; i < particles.length; i++) {
+              const p = particles[i];
+              const dx = p.u - cu, dy = p.v - cv;
+              const dist = Math.hypot(dx, dy) + 0.001;
+              const fall = Math.exp(-(dist * dist) / 0.16);
+              const nx = dx / dist, ny = dy / dist;
+              // Radial outward push + subtle cyber vortex swirl
+              const swirl = (Math.random() * 0.5 + 0.5) * strength;
+              p.vx += (nx * 0.42 - ny * 0.22) * fall * swirl + (Math.random() - 0.5) * 0.12 * fall;
+              p.vy += (ny * 0.42 + nx * 0.22) * fall * swirl + (Math.random() - 0.5) * 0.12 * fall;
+              p.e = Math.min(1, p.e + (0.45 + 0.55 * fall) * strength);
+            }
+          }
+
+          // ---- textures ----
           const tex = {};
           const param = () => { gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR); };
           gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
@@ -255,7 +512,7 @@
             alphaMap = ac.getImageData(0, 0, 128, 128).data;
           }
 
-          // ---- what he does ----
+          // ---- Design-mode acts & zones (unchanged) ----
           const SPOT = {nose: [.5, .54], brow: [.5, .36], cheekR: [.64, .58], cheekL: [.36, .58], mouth: [.5, .64]};
           const ACTS = {
             yawn: [['yawn1', 140, 240], ['yawn2', 140, 200], ['yawn', 170, 900], ['yawn2', 150, 130], ['yawn4', 180, 700]],
@@ -288,7 +545,15 @@
             return v > .71 ? 'chin' : 'cheek';
           };
 
-          // state
+          // ---- state ----
+          let devMode = window.__initialFaceMode === 'dev';
+          let devMix = devMode ? 1 : 0;
+          let devTheme = 0, devPrevTheme = 0, devThemeStart = 0, devScanStart = -9999;
+          let devHover = 0, devBurstId = 0, lastHoverEmit = false;
+          let holoWaveStart = -99999, nextAutoHoloWave = performance.now() + 1400, lastHoloWaveEmit = false;
+          let curHoloIn = -0.25, curHoloOut = 1.3;
+          let pVelU = 0, pVelV = 0, prevPu = .5, prevPv = .5;
+
           let ready = false, alphaMap = null, tStart = 0, last = performance.now();
           let mx = 0, my = 0, pu = .5, pv = .5, onHead = false, zone = null, zoneSince = 0;
           let lastInput = -1e9, awake = false, pressed = false, downAt = 0, downU = 0, downV = 0, lastX = 0, lastY = 0, speed = 0, shake = 0;
@@ -300,6 +565,63 @@
           let leanX = 0, leanY = 0, lvX = 0, lvY = 0, wantLean = [0, 0];
           let hairI = -1;
           const pullNow = [0, 0];
+
+          function isHoloWaveActive(now) {
+            return devMode && (now - holoWaveStart) >= 0 && (now - holoWaveStart) < 4400;
+          }
+
+          function emitDevState(withBurst = false) {
+            if (withBurst) devBurstId++;
+            window.dispatchEvent(new CustomEvent('dev-face-theme', {
+              detail: {
+                themeIndex: devTheme,
+                hovering: onHead && devMode,
+                burstId: devBurstId,
+                holoWave: isHoloWaveActive(performance.now())
+              }
+            }));
+          }
+
+          function triggerHoloWave(now = performance.now(), originU = 0.5, originV = 0.5) {
+            holoWaveStart = now;
+            nextAutoHoloWave = now + 10500 + Math.random() * 3000;
+            lastHoloWaveEmit = true;
+            triggerParticleBurst(originU, originV, 0.95);
+            emitDevState(true);
+          }
+
+          function switchDevTheme(nextIdx, originU = 0.5, originV = 0.5) {
+            const now = performance.now();
+            const target = ((nextIdx % 5) + 5) % 5;
+            devPrevTheme = devTheme;
+            devTheme = target;
+            devThemeStart = now;
+            devScanStart = now;
+            triggerHoloWave(now, originU, originV);
+          }
+
+          window.__setFaceMode = function (mode) {
+            const nextDev = mode === 'dev';
+            if (nextDev === devMode) return;
+            devMode = nextDev;
+            const now = performance.now();
+            if (devMode) {
+              devScanStart = now;
+              nextAutoHoloWave = now + 900;
+              triggerParticleBurst(0.5, 0.5, 0.75);
+              emitDevState(true);
+            } else {
+              holoWaveStart = -99999;
+              lastHoloWaveEmit = false;
+              if (pCtx && pCanvas) pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+              emitDevState(false);
+            }
+          };
+
+          window.__setDevFaceTheme = function (idx) {
+            if (!devMode) return;
+            switchDevTheme(idx, 0.5, 0.5);
+          };
 
           const resolveKey = name => tex[name] ? name : (ALIAS[name] && tex[ALIAS[name]] ? ALIAS[name] : null);
           const fileOf = cell => cell === 'rest' ? 'rest' : EYEFILE[cell];
@@ -372,11 +694,21 @@
           addEventListener('pointermove', e => {
             const now = performance.now();
             const dx = e.clientX - lastX, dy = e.clientY - lastY; lastX = e.clientX; lastY = e.clientY;
-            mx = e.clientX; my = e.clientY; [pu, pv] = toUv(mx, my);
+            mx = e.clientX; my = e.clientY;
+            prevPu = pu; prevPv = pv;
+            [pu, pv] = toUv(mx, my);
+            pVelU = (pu - prevPu) * 28;
+            pVelV = (pv - prevPv) * 28;
             speed += Math.hypot(dx, dy) * .004;
             wake(now);
-            if (act && !pressed && act !== ACTS.doze) endAct(); else if (act === ACTS.doze) { actI = act.length - 2; advance(now); }
+
             onHead = solid(pu, pv);
+            if (devMode && onHead !== lastHoverEmit) {
+              lastHoverEmit = onHead;
+              emitDevState(false);
+            }
+
+            if (act && !pressed && act !== ACTS.doze) endAct(); else if (act === ACTS.doze) { actI = act.length - 2; advance(now); }
             const z = onHead ? zoneAt(pu, pv) : null;
             if (z !== zone) { zone = z; zoneSince = now; }
             wrap.style.cursor = pressed ? 'grabbing' : onHead ? 'grab' : '';
@@ -387,48 +719,233 @@
               brush.px = px; brush.py = py;
             }
           });
+
           wrap.addEventListener('pointerdown', e => {
             const now = performance.now(), [u, v] = toUv(e.clientX, e.clientY);
             if (!solid(u, v)) return;
-            wake(now); endAct(); pressed = true; downAt = now; downU = u; downV = v; takeHold(u, v);
+            wake(now);
+            endAct(); pressed = true; downAt = now; downU = u; downV = v; takeHold(u, v);
             moodFace = null; wrap.setPointerCapture(e.pointerId); e.preventDefault();
           });
+
           function release() {
             if (!pressed) return;
             const now = performance.now(), L = Math.hypot(brush.px, brush.py), z = zoneAt(downU, downV), held = now - downAt;
             pressed = false; brush = null; wrap.style.cursor = onHead ? 'grab' : '';
             pulls = pulls.filter(t => now - t < 14000);
             if (L < .03 && held < 380) {
+              if (devMode) {
+                // On tap in Dev mode: trigger holographic transformation wave + cycle cyber style alongside full tap expressions!
+                switchDevTheme(devTheme + 1, downU, downV);
+              }
               if (z === 'hair') hairI = hairI + 1 >= HAIRS.length ? -1 : hairI + 1;
               else { const r = ZONES.tap[z]; if (r.startsWith('act:')) startAct(r.slice(4), now); else { moodFace = r; moodUntil = now + 1100; } poke(downU, downV, 0, .5, .06); }
               return;
             }
+            if (devMode) triggerParticleBurst(downU, downV, 0.85);
             pulls.push(now);
             const n = pulls.length;
             moodFace = n >= 8 ? 'cry' : n >= 5 ? 'angry' : L > .22 ? 'dizzy' : L > .1 ? 'scrunch' : 'deadpan';
             moodUntil = now + (n >= 5 ? 2600 : 700 + L * 2800);
           }
           addEventListener('pointerup', release); addEventListener('pointercancel', release);
-          addEventListener('pointerleave', () => { zone = null; });
-          document.querySelectorAll('.contact-btn').forEach(b => {
-            b.addEventListener('pointerenter', () => { moodFace = 'hearts'; moodUntil = performance.now() + 1e7; });
-            b.addEventListener('pointerleave', () => { moodFace = 'grin'; moodUntil = performance.now() + 700; });
+          addEventListener('pointerleave', () => {
+            zone = null;
+            if (onHead) {
+              onHead = false;
+              if (devMode && lastHoverEmit) { lastHoverEmit = false; emitDevState(false); }
+            }
           });
+
+          document.querySelectorAll('.contact-btn').forEach(b => {
+            b.addEventListener('pointerenter', () => {
+              moodFace = 'hearts'; moodUntil = performance.now() + 1e7;
+            });
+            b.addEventListener('pointerleave', () => {
+              moodFace = 'grin'; moodUntil = performance.now() + 700;
+            });
+          });
+
           let lastScroll = scrollY, scrollUntil = 0;
           addEventListener('scroll', () => { const n = performance.now(); if (Math.abs(scrollY - lastScroll) > 2) { scrollUntil = n + 500; lastScroll = scrollY; } wake(n); }, {passive: true});
 
           let flyPos = [1.4, 0], visible = true;
           new IntersectionObserver(es => { visible = es[0].isIntersecting; }, {threshold: 0}).observe(canvas);
-          new ResizeObserver(() => { const r = Math.min(devicePixelRatio || 1, 2), b = canvas.getBoundingClientRect(); canvas.width = b.width * r; canvas.height = b.height * r; gl.viewport(0, 0, canvas.width, canvas.height); }).observe(canvas);
+          new ResizeObserver(() => {
+            const r = Math.min(devicePixelRatio || 1, 2), b = canvas.getBoundingClientRect();
+            canvas.width = Math.max(1, b.width * r);
+            canvas.height = Math.max(1, b.height * r);
+            gl.viewport(0, 0, canvas.width, canvas.height);
+            if (pCanvas) {
+              pCanvas.width = Math.max(1, b.width * r);
+              pCanvas.height = Math.max(1, b.height * r);
+            }
+          }).observe(canvas);
 
-          // ---- frame ----
+          // ---- Render Dev Mode Interactive Particle Dispersion + Neural Synapses ----
+          const activePts = [];
+          function renderDevParticles(dt, now) {
+            if (!pCtx || !pCanvas) return;
+            const W = pCanvas.width, Hh = pCanvas.height;
+            pCtx.clearRect(0, 0, W, Hh);
+            if (devMix < 0.02 || !particles.length) return;
+
+            const pal = isHoloWaveActive(now)
+              ? DEV_PALETTES[1]
+              : (DEV_PALETTES[devTheme] || DEV_PALETTES[0]);
+            const tSec = now * 0.001;
+            const hoverR = 0.19;
+            const hoverR2 = hoverR * hoverR;
+            const dpr = Math.min(devicePixelRatio || 1, 2);
+            const quantumBoost = devTheme === 3 ? 1.55 : 1.0;
+
+            pVelU *= Math.exp(-dt * 12);
+            pVelV *= Math.exp(-dt * 12);
+            activePts.length = 0;
+
+            pCtx.save();
+            pCtx.globalCompositeOperation = 'lighter';
+
+            for (let i = 0; i < particles.length; i++) {
+              const p = particles[i];
+              const curU = p.u + p.ox + leanX;
+              const curV = p.v + p.oy + leanY;
+
+              // Hover dispersion field (curl swirl + radial repulsion + cursor wake)
+              if (onHead && devMode && !reduced) {
+                const dx = curU - pu, dy = curV - pv;
+                const d2 = dx * dx + dy * dy;
+                if (d2 < hoverR2) {
+                  const dist = Math.sqrt(d2) + 0.001;
+                  const fHover = (1 - dist / hoverR);
+                  const f2 = fHover * fHover;
+                  const nx = dx / dist, ny = dy / dist;
+                  const curl = Math.sin(tSec * 3.4 + p.ph) * 0.55;
+                  p.vx += (nx * 0.55 - ny * curl + pVelU * 0.35) * f2 * dt * 7.8 * quantumBoost;
+                  p.vy += (ny * 0.55 + nx * curl + pVelV * 0.35 - 0.12) * f2 * dt * 7.8 * quantumBoost;
+                  p.e = Math.min(1, p.e + fHover * dt * 5.2);
+                }
+              }
+
+              // Wavefront particle lift during the 3D Holographic Transformation Wave
+              if (!reduced && (curHoloIn > -0.15 && curHoloIn < 1.2 || curHoloOut > -0.15 && curHoloOut < 1.2)) {
+                const wC = p.v * 0.86 + p.u * 0.24 - 0.08;
+                const dIn = Math.abs(wC - curHoloIn);
+                const dOut = Math.abs(wC - curHoloOut);
+                const nearWave = Math.min(dIn, dOut);
+                if (nearWave < 0.055) {
+                  const wf = 1 - nearWave / 0.055;
+                  const outX = p.u - 0.5;
+                  p.vx += (outX * 0.26 + Math.sin(p.ph + tSec * 6) * 0.08) * wf * dt * 5.0;
+                  p.vy += (-0.18 + Math.cos(p.ph + tSec * 5) * 0.07) * wf * dt * 5.0;
+                  p.e = Math.min(1, p.e + wf * dt * 4.2);
+                }
+              }
+
+              // Subtle ambient edge dispersion (floating cyber stardust peeling off silhouette)
+              if (p.edge && !reduced) {
+                const ambWave = Math.sin(tSec * 1.6 + p.ph * 2.1);
+                if (ambWave > 0.88 && p.e < 0.25) {
+                  const outX = p.u - 0.5, outY = p.v - 0.5;
+                  p.vx += outX * 0.09 * quantumBoost;
+                  p.vy += (outY * 0.07 - 0.045) * quantumBoost;
+                  p.e = Math.max(p.e, 0.42);
+                }
+              }
+
+              // Spring return to exact facial pixel so Yuvraj's face smoothly re-forms
+              p.vx += -p.ox * 7.4 * dt;
+              p.vy += -p.oy * 7.4 * dt;
+              const damp = Math.exp(-dt * 4.4);
+              p.vx *= damp;
+              p.vy *= damp;
+              p.ox += p.vx * dt;
+              p.oy += p.vy * dt;
+
+              const disp = Math.hypot(p.ox, p.oy);
+              p.e = Math.max(Math.min(1, disp * 12), p.e * Math.exp(-dt * 1.9));
+
+              if (p.e < 0.06) continue;
+
+              // Map UV to expanded canvas coordinates matching WebGL shader (OVER = 1.7)
+              const px = ((curU - 0.5) / OVER + 0.5) * W;
+              const py = ((curV - 0.5) / OVER + 0.5) * Hh;
+              const alpha = Math.min(0.95, p.e * devMix * 0.92);
+
+              // Pick vibrant palette tint blended with Yuvraj's real sampled pixel color
+              const tint = p.colorPick < 0.48 ? pal.primary : p.colorPick < 0.82 ? pal.secondary : pal.accent;
+              const mixT = 0.58 + 0.36 * p.e;
+              const cr = (p.r * (1 - mixT) + tint[0] * mixT) | 0;
+              const cg = (p.g * (1 - mixT) + tint[1] * mixT) | 0;
+              const cb = (p.b * (1 - mixT) + tint[2] * mixT) | 0;
+              const rad = p.sz * dpr * (0.75 + p.e * 0.95);
+
+              // Outer neon halo for high-energy dispersed sparks
+              if (p.e > 0.35) {
+                pCtx.fillStyle = `rgba(${tint[0]},${tint[1]},${tint[2]},${(alpha * 0.28).toFixed(3)})`;
+                pCtx.beginPath();
+                pCtx.arc(px, py, rad * 2.4, 0, Math.PI * 2);
+                pCtx.fill();
+              }
+
+              // Crisp glowing core particle
+              pCtx.fillStyle = `rgba(${cr},${cg},${cb},${alpha.toFixed(3)})`;
+              pCtx.beginPath();
+              pCtx.arc(px, py, rad, 0, Math.PI * 2);
+              pCtx.fill();
+
+              if (p.e > 0.24 && activePts.length < 150) {
+                activePts.push(px, py, p.e);
+              }
+            }
+
+            // Neural synapse filaments connecting nearby dispersed particles
+            const maxLinkDist = 42 * dpr;
+            const maxLinkDist2 = maxLinkDist * maxLinkDist;
+            pCtx.lineWidth = 0.75 * dpr;
+            for (let a = 0; a < activePts.length; a += 3) {
+              const ax = activePts[a], ay = activePts[a + 1], ae = activePts[a + 2];
+              let links = 0;
+              for (let b = a + 3; b < activePts.length && links < 3; b += 3) {
+                const dx = ax - activePts[b], dy = ay - activePts[b + 1];
+                const d2 = dx * dx + dy * dy;
+                if (d2 < maxLinkDist2 && d2 > 36) {
+                  const la = (1 - Math.sqrt(d2) / maxLinkDist) * Math.min(ae, activePts[b + 2]) * 0.48 * devMix;
+                  pCtx.strokeStyle = `${pal.link}${la.toFixed(3)})`;
+                  pCtx.beginPath();
+                  pCtx.moveTo(ax, ay);
+                  pCtx.lineTo(activePts[b], activePts[b + 1]);
+                  pCtx.stroke();
+                  links++;
+                }
+              }
+            }
+
+            pCtx.restore();
+          }
+
+          // ---- main frame loop ----
           function frame(now) {
             requestAnimationFrame(frame);
             const dt = Math.min(.04, (now - last) / 1000); last = now;
             if (!ready || !visible) return;
             const f = r => 1 - Math.exp(-dt * r);
 
+            devMix += ((devMode ? 1 : 0) - devMix) * f(6.5);
+            devHover += ((devMode && onHead ? 1 : 0) - devHover) * f(7.5);
             speed *= Math.exp(-dt * 6); shake += ((speed > 1.5 ? 1 : 0) - shake) * f(speed > 1.5 ? 1.2 : .9);
+
+            // Periodic Holographic Transformation Wave in Dev mode (transforms into 3D bright holographic sculpture, then sweeps back)
+            if (devMode && !reduced) {
+              const elapsedHolo = now - holoWaveStart;
+              const activeHolo = elapsedHolo >= 0 && elapsedHolo < 4400;
+              if (!activeHolo && now > nextAutoHoloWave) {
+                triggerHoloWave(now, 0.5, 0.42);
+              } else if (activeHolo !== lastHoloWaveEmit) {
+                lastHoloWaveEmit = activeHolo;
+                emitDevState(false);
+              }
+            }
 
             if (act) { if (now - actT > act[actI][2]) advance(now); }
             else if (!reduced && !pressed && tStart && now - Math.max(lastInput, tStart) > nextIdle) {
@@ -498,12 +1015,40 @@
             }
             gl.bindBuffer(gl.ARRAY_BUFFER, dynBuf); gl.bufferSubData(gl.ARRAY_BUFFER, 0, dyn);
 
+            const themeBlend = Math.min(1, (now - devThemeStart) / 650);
+            const scanWave = Math.min(1, Math.max(0, (now - devScanStart) / 820));
+
+            // Compute 3-phase Holographic Wave sweep (0..1.35s enter, 1.35..2.95s hold, 2.95..4.35s return)
+            const hwElapsed = (now - holoWaveStart) / 1000;
+            if (devMode && hwElapsed >= 0 && hwElapsed < 4.4) {
+              const easeIO = t => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+              const pIn = Math.min(1, Math.max(0, hwElapsed / 1.35));
+              const pOut = Math.min(1, Math.max(0, (hwElapsed - 2.95) / 1.35));
+              curHoloIn = -0.20 + easeIO(pIn) * 1.46;
+              curHoloOut = -0.20 + easeIO(pOut) * 1.46;
+            } else {
+              curHoloIn = -0.25;
+              curHoloOut = 1.30;
+            }
+
             gl.clear(gl.COLOR_BUFFER_BIT);
             gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, tex[faceA] || tex.rest);
             gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, tex[faceB] || tex.rest);
             gl.uniform1f(U.fade, Math.min(1, (now - fadeT) / fadeMs));
             gl.uniform2f(U.lean, leanX, leanY);
+            gl.uniform1f(U.uDevMix, devMix);
+            gl.uniform1f(U.uTime, now * 0.001);
+            gl.uniform2f(U.uPointer, pu, pv);
+            gl.uniform1f(U.uHover, devHover);
+            gl.uniform1f(U.uTheme, devTheme);
+            gl.uniform1f(U.uPrevTheme, devPrevTheme);
+            gl.uniform1f(U.uThemeBlend, themeBlend * themeBlend * (3 - 2 * themeBlend));
+            gl.uniform1f(U.uScanWave, scanWave >= 1 ? 0 : scanWave);
+            gl.uniform1f(U.uHoloIn, curHoloIn);
+            gl.uniform1f(U.uHoloOut, curHoloOut);
             gl.drawElements(gl.TRIANGLES, idx.length, gl.UNSIGNED_SHORT, 0);
+
+            if (devMix > 0.01) renderDevParticles(dt, now);
           }
 
           (async () => {
@@ -511,12 +1056,14 @@
             if (!base) return;
             const keyedBase = upload('rest', base);
             hitMap(keyedBase);
+            buildFaceParticles(keyedBase);
             const take = async n => { const img = await load(n); if (img) upload(n, img); };
-            await Promise.all([take('closed'), take('half')]);
+            await Promise.all([take('closed'), take('half'), take('laugh')]);
             if (tex.closed) { faceA = 'closed'; faceB = 'closed'; eyeNow = 'closed'; }
             document.getElementById('faceFallback').style.visibility = 'hidden';
             ready = true; tStart = performance.now(); requestAnimationFrame(frame);
-            const names = Object.keys(ASSETS).filter(n => !['rest', 'closed', 'half'].includes(n));
+            if (devMode) emitDevState(false);
+            const names = Object.keys(ASSETS).filter(n => !['rest', 'closed', 'half', 'laugh'].includes(n));
             let i = 0;
             await Promise.all(Array.from({length: 6}, async () => { while (i < names.length) await take(names[i++]); }));
           })();

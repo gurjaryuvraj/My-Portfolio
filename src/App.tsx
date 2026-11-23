@@ -10,6 +10,9 @@ declare global {
   interface Window {
     __bootFaceEngine?: () => void;
     __faceEngine?: boolean;
+    __initialFaceMode?: PortfolioMode;
+    __setFaceMode?: (mode: PortfolioMode) => void;
+    __setDevFaceTheme?: (index: number) => void;
   }
 }
 
@@ -29,10 +32,14 @@ export default function App() {
   } | null>(null);
 
   useEffect(() => {
+    window.__initialFaceMode = mode;
     if (typeof window.__bootFaceEngine === 'function') {
       window.__bootFaceEngine();
     }
-  }, []);
+    if (typeof window.__setFaceMode === 'function') {
+      window.__setFaceMode(mode);
+    }
+  }, [mode]);
 
   // Normalize root "/" to "/design" and sync browser Back/Forward navigation
   useEffect(() => {
