@@ -4,6 +4,8 @@ import { Code2, Layers } from 'lucide-react';
 import { FadeIn } from '../components/FadeIn';
 import { ContactButton, LINKEDIN_URL } from '../components/ContactButton';
 import { Magnet } from '../components/Magnet';
+import { DesignWeatherStage } from '../components/DesignWeatherStage';
+import { useVisitorWeather } from '../hooks/useVisitorWeather';
 import type { PortfolioMode } from '../data/portfolio';
 
 interface DevFaceLighting {
@@ -83,6 +85,7 @@ interface HeroSectionProps {
 
 export function HeroSection({ mode, onChangeMode }: HeroSectionProps) {
   const isDev = mode === 'dev';
+  const { skyTheme } = useVisitorWeather();
   const [devThemeIndex, setDevThemeIndex] = useState(0);
   const [devHoveringFace, setDevHoveringFace] = useState(false);
   const [devHoloWave, setDevHoloWave] = useState(false);
@@ -127,6 +130,9 @@ export function HeroSection({ mode, onChangeMode }: HeroSectionProps) {
       className="relative h-screen flex flex-col justify-between bg-[#0C0C0C] transition-colors duration-500"
       style={{ overflowX: 'clip' }}
     >
+      {/* Dynamic IP-Based Time & Weather Sky Background (Design Mode) */}
+      <DesignWeatherStage active={!isDev} skyTheme={skyTheme} />
+
       {/* Dynamic Cyber-AI Ambient Lighting & Neural Field (Dev Mode — shifts with face graphic) */}
       <div
         aria-hidden="true"
@@ -212,8 +218,9 @@ export function HeroSection({ mode, onChangeMode }: HeroSectionProps) {
           <a
             href="#about"
             onClick={(e) => handleScrollTo(e, 'about')}
+            style={!isDev ? { textShadow: skyTheme.textShadow } : undefined}
             className={`pointer-events-auto font-medium uppercase tracking-wider text-sm md:text-lg lg:text-[1.4rem] hover:opacity-70 transition-all duration-200 whitespace-nowrap ${
-              isDev ? 'text-[#F5D0FE]' : 'text-[#D7E2EA]'
+              isDev ? 'text-[#F5D0FE]' : skyTheme.textColorClass
             }`}
           >
             About
@@ -221,8 +228,9 @@ export function HeroSection({ mode, onChangeMode }: HeroSectionProps) {
           <a
             href="#services"
             onClick={(e) => handleScrollTo(e, 'services')}
+            style={!isDev ? { textShadow: skyTheme.textShadow } : undefined}
             className={`pointer-events-auto font-medium uppercase tracking-wider text-sm md:text-lg lg:text-[1.4rem] hover:opacity-70 transition-all duration-200 whitespace-nowrap ${
-              isDev ? 'text-[#F5D0FE]' : 'text-[#D7E2EA]'
+              isDev ? 'text-[#F5D0FE]' : skyTheme.textColorClass
             }`}
           >
             Price
@@ -230,8 +238,9 @@ export function HeroSection({ mode, onChangeMode }: HeroSectionProps) {
           <a
             href="#projects"
             onClick={(e) => handleScrollTo(e, 'projects')}
+            style={!isDev ? { textShadow: skyTheme.textShadow } : undefined}
             className={`pointer-events-auto font-medium uppercase tracking-wider text-sm md:text-lg lg:text-[1.4rem] hover:opacity-70 transition-all duration-200 whitespace-nowrap ${
-              isDev ? 'text-[#F5D0FE]' : 'text-[#D7E2EA]'
+              isDev ? 'text-[#F5D0FE]' : skyTheme.textColorClass
             }`}
           >
             Projects
@@ -240,8 +249,9 @@ export function HeroSection({ mode, onChangeMode }: HeroSectionProps) {
             href={LINKEDIN_URL}
             target="_blank"
             rel="noopener noreferrer"
+            style={!isDev ? { textShadow: skyTheme.textShadow } : undefined}
             className={`pointer-events-auto font-medium uppercase tracking-wider text-sm md:text-lg lg:text-[1.4rem] hover:opacity-70 transition-all duration-200 whitespace-nowrap ${
-              isDev ? 'text-[#F5D0FE]' : 'text-[#D7E2EA]'
+              isDev ? 'text-[#F5D0FE]' : skyTheme.textColorClass
             }`}
           >
             Contact
@@ -251,14 +261,22 @@ export function HeroSection({ mode, onChangeMode }: HeroSectionProps) {
 
       {/* Massive Hero Heading + Right-Aligned Design/Dev Toggle Below It */}
       <div className="relative z-20 w-full pointer-events-none">
-        <div className="relative z-0 w-full overflow-hidden pointer-events-none">
+        <div className="relative z-0 w-full px-4 sm:px-6 md:px-10 pointer-events-none">
           <FadeIn delay={0.15} y={40} className="w-full">
             <h1
               className={`${
-                isDev ? 'hero-heading-dev' : 'hero-heading'
-              } font-black uppercase tracking-tight leading-none whitespace-nowrap w-full text-center text-[11.5vw] sm:text-[12.5vw] md:text-[13.5vw] lg:text-[14.2vw] mt-6 sm:mt-4 md:-mt-5 select-none transition-all duration-500`}
+                isDev ? 'hero-heading-dev' : ''
+              } font-black uppercase tracking-tight leading-none whitespace-nowrap w-full text-center text-[9.6vw] sm:text-[9.8vw] md:text-[10vw] lg:text-[9.8vw] xl:text-[9.5vw] mt-6 sm:mt-4 md:-mt-3 select-none transition-all duration-500`}
+              style={
+                !isDev
+                  ? {
+                      color: skyTheme.headingColor,
+                      textShadow: skyTheme.headingTextShadow,
+                    }
+                  : undefined
+              }
             >
-              Hey iam yuvraj
+              Hey I&apos;m Yuvraj
             </h1>
           </FadeIn>
         </div>
@@ -338,7 +356,7 @@ export function HeroSection({ mode, onChangeMode }: HeroSectionProps) {
                 ? boostGlow
                   ? activeLighting.portraitHoverGlow
                   : activeLighting.portraitGlow
-                : 'none',
+                : skyTheme.portraitFilter,
             }}
             data-delay="600"
           >
@@ -384,9 +402,12 @@ export function HeroSection({ mode, onChangeMode }: HeroSectionProps) {
         <FadeIn delay={0.35} y={20} className="pointer-events-auto">
           <p
             className={`font-light uppercase tracking-wide leading-snug max-w-[175px] sm:max-w-[235px] md:max-w-[280px] transition-colors duration-300 ${
-              isDev ? 'text-[#F5D0FE]' : 'text-[#D7E2EA]'
+              isDev ? 'text-[#F5D0FE]' : skyTheme.textColorClass
             }`}
-            style={{ fontSize: 'clamp(0.75rem, 1.4vw, 1.5rem)' }}
+            style={{
+              fontSize: 'clamp(0.75rem, 1.4vw, 1.5rem)',
+              textShadow: !isDev ? skyTheme.textShadow : undefined,
+            }}
           >
             {isDev
               ? 'a software developer driven by building fast, scalable and futuristic products'
